@@ -241,7 +241,7 @@ class CameraSession: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate, AVC
     // Start/Stop session
     if configuration.isActive {
       captureSession.startRunning()
-      self.updateCaptureSessionInputOrientation()
+      updateCaptureSessionInputOrientation()
       delegate?.onCameraStarted()
     } else {
       captureSession.stopRunning()
@@ -309,10 +309,25 @@ class CameraSession: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate, AVC
   func updateCaptureSessionInputOrientation() {
     // Lock the camera session, to be sure that it doesn't conflict with other session changes.
     CameraQueues.cameraQueue.async {
-      // Because statusBarOrientation requires it, as it's an UI operation.
-      DispatchQueue.main.async {
-        let interfaceOrientation = UIApplication.shared.statusBarOrientation // Set up orientation for all connections.
-        for connection in self.captureSession.connections {
+      var interfaceOrientation: UIInterfaceOrientation = .portrait
+      // We dispatch on main because statusBarOrientation requires it, as it's an UI operation.
+      // We do a main.sync to keep the lock on the camera queue
+      DispatchQueue.main.sync {
+        interfaceOrientation = UIApplication.shared.statusBarOrientation
+      }
+      let outputConnections = self.captureSession.outputs.flatMap { output in
+        return output.connections
+      }
+
+      // We get the input connections by filtering on the output
+      let inputConnections = self.captureSession.connections.filter { sessionConnection in
+        return outputConnections.contains(where: { outputConnection in
+          return outputConnection != sessionConnection
+        })
+      }
+
+      for connection in inputConnections {
+        if connection.isVideoOrientationSupported {
           switch interfaceOrientation {
           case .portrait:
             connection.videoOrientation = .portrait
