@@ -320,11 +320,18 @@ class CameraSession: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate, AVC
       }
 
       // We get the input connections by filtering on the output
-      let inputConnections = self.captureSession.connections.filter { sessionConnection in
-        return outputConnections.contains(where: { outputConnection in
-          return outputConnection != sessionConnection
-        })
-      }
+      let inputConnections: [AVCaptureConnection] = {
+        if #available(iOS 13.0, *) {
+          return self.captureSession.connections.filter { sessionConnection in
+            return outputConnections.contains(where: { outputConnection in
+              return outputConnection != sessionConnection
+            })
+          }
+        } else {
+          // TODO: Fallback of iOS < 13. How to get the input connection ?
+          return []
+        }
+      }()
 
       for connection in inputConnections {
         if connection.isVideoOrientationSupported {
@@ -338,6 +345,8 @@ class CameraSession: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate, AVC
           case .portraitUpsideDown:
             connection.videoOrientation = .portraitUpsideDown
           case .unknown:
+            connection.videoOrientation = .portrait
+          @unknown default:
             connection.videoOrientation = .portrait
           }
         }
