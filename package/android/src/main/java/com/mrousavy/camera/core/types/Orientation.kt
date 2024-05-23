@@ -11,9 +11,11 @@ enum class Orientation(override val unionValue: String) : JSUnionValue {
   fun toSurfaceRotation(): Int =
     when (this) {
       PORTRAIT -> Surface.ROTATION_0
-      LANDSCAPE_LEFT -> Surface.ROTATION_90
+      // When you rotate the device clockwise, the view is rotated counter clockwise
+      LANDSCAPE_LEFT -> Surface.ROTATION_270
       PORTRAIT_UPSIDE_DOWN -> Surface.ROTATION_180
-      LANDSCAPE_RIGHT -> Surface.ROTATION_270
+      // When you rotate the device counter clockwise, the view is rotated clockwise
+      LANDSCAPE_RIGHT -> Surface.ROTATION_90
     }
 
   companion object : JSUnionValue.Companion<Orientation> {
