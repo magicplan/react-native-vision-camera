@@ -1,3 +1,10 @@
+### Magicplan
+
+To do a release :
+* Create a branch from main.
+* Checkout the new branch and run 'bash ./package/magicplan_release.sh'
+
+
 <a href="https://margelo.io">
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="./docs/static/img/banner-dark.png" />
